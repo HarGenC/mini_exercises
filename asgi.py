@@ -3,6 +3,31 @@ import json
 import uvicorn
 import aiohttp
 
+class HTTPStatus:
+    """Класс для хранения HTTP статус-кодов"""
+    OK_200 = 200
+    CREATED_201 = 201
+    ACCEPTED_202 = 202
+    NO_CONTENT_204 = 204
+    
+    BAD_REQUEST_400 = 400
+    UNAUTHORIZED_401 = 401
+    FORBIDDEN_403 = 403
+    NOT_FOUND_404 = 404
+    METHOD_NOT_ALLOWED_405 = 405
+    CONFLICT_409 = 409
+    UNPROCESSABLE_ENTITY_422 = 422
+    TOO_MANY_REQUESTS_429 = 429
+    
+    INTERNAL_SERVER_ERROR_500 = 500
+    BAD_GATEWAY_502 = 502
+    SERVICE_UNAVAILABLE_503 = 503
+    GATEWAY_TIMEOUT_504 = 504
+    
+    SERVER_ERROR_520 = 520
+    INVALID_RESPONSE_521 = 521
+
+
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
@@ -49,22 +74,22 @@ async def app(scope, receive, send):
 
     try:
         response = await session.get(url)
-        if response.status == 404:
-            return await send_complete_response(404, json.dumps({"error": f"Unknown currency '{path}'"}), send)
+        if response.status == HTTPStatus.NOT_FOUND_404:
+            return await send_complete_response(HTTPStatus.NOT_FOUND_404, json.dumps({"error": f"Unknown currency '{path}'"}), send)
     except Exception as e:
         logging.exception(e)
-        return await send_complete_response(520, json.dumps({"error": "Server error"}), send)
+        return await send_complete_response(HTTPStatus.SERVER_ERROR_520, json.dumps({"error": "Server error"}), send)
     
     try:
         json_data = await response.json()
     except aiohttp.ContentTypeError as e:
         logging.exception(e)
-        return await send_complete_response(400, json.dumps({"error": "Invalid JSON response"}), send)
+        return await send_complete_response(HTTPStatus.BAD_REQUEST_400, json.dumps({"error": "Invalid JSON response"}), send)
     except Exception as e:
         logging.exception(e)
-        return await send_complete_response(520, json.dumps({"error": "Server error"}), send)
+        return await send_complete_response(HTTPStatus.SERVER_ERROR_520, json.dumps({"error": "Server error"}), send)
 
-    return await send_complete_response(200, json.dumps(json_data), send)
+    return await send_complete_response(HTTPStatus.OK_200, json.dumps(json_data), send)
 
 
 if __name__ == "__main__":
