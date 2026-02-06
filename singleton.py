@@ -1,25 +1,28 @@
-from import_singlton import instance # С помощью импортов синглтон
+from import_singleton import instance # С помощью импортов синглтон
 
-class AddSingltonMeta(type): # С помощью метакласса
+class AddSingletonMeta(type): # С помощью метакласса
     _instances = {}
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
     
-class MetaSinglton(metaclass=AddSingltonMeta):
+class MetaSingleton(metaclass=AddSingletonMeta):
     pass
 
-class Singlton:
+class Singleton:
     _instance = None
     def __new__(cls, *args, **kwargs): # С помощью метода __new__
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    pass
+    
+    def __init__(self, *args, **kwargs):
+        if not hasattr(self, '_initialized'):
+            self._initialized = True
 
-first = Singlton()
-second = Singlton()
 
-if first is second:
-    print("good")
+first = Singleton()
+second = Singleton()
+
+assert first is second
