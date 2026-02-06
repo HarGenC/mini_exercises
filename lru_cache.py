@@ -1,10 +1,19 @@
 from collections import OrderedDict
+import functools
 import unittest.mock
 
-def lru_cache(maxsize = None):
+#redis для самых частоиспользуемых запросов
+#lru_cache для самых недавних запроосов
+#Сначала проверяется redis потом lru_cache, называется redis hit
+def lru_cache(maxsize:int = 128):
+
+    if maxsize <= 0:
+        raise ValueError("maxsize must be positive or None")
+
     def cached(func):
         cache = OrderedDict()
 
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             key = None
             if args and kwargs:
@@ -15,6 +24,7 @@ def lru_cache(maxsize = None):
                 key = tuple(args)
 
             if key in cache:
+                cache.move_to_end(key)
                 return cache[key]
             
             result = func(*args, **kwargs)

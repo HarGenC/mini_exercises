@@ -32,7 +32,7 @@ def single(max_processing_time: datetime.timedelta):
             finally:
                 stored_token = redis_client.get(lock_key)
                 if stored_token and stored_token.decode() == token:
-                    redis_client.delete(lock_key)
+                    redis_client.delete(lock_key) # 
 
         return wrapper
 
