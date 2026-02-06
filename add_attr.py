@@ -2,24 +2,21 @@
 
 from datetime import datetime
 import time
+from typing import Any, Dict, Tuple, Type
+
+from click import pause
 
 class AddAttrMeta(type):
-    def __init__(cls, name, bases, attrs):
-        super().__init__(name, bases, attrs)
+    def __new__(
+        mcs: Type['AddAttrMeta'], 
+        name: str, 
+        bases: Tuple[type, ...], 
+        attrs: Dict[str, Any]
+    ) -> 'AddAttrMeta':
+        new_class = super().__new__(mcs, name, bases, attrs)
+        new_class.created_at = datetime.now()
         
-        original_init = getattr(cls, '__init__', None)
-        
-        def new_init(self, *args, **kwargs):
-            self.created_at = datetime.now()
-            if original_init:
-                original_init(self, *args, **kwargs)
-        
-        # Заменяем __init__ класса
-        cls.__init__ = new_init
-
-    #def __init__(cls, name, bases, attrs):
-    #    super().__init__(name, bases, attrs)
-    #   cls.created_at = datetime.now()
+        return new_class
 
 class A(metaclass=AddAttrMeta):
     pass
@@ -32,3 +29,4 @@ b = A()
 
 print(b.created_at)
 print(a.created_at)
+assert a.created_at == b.created_at
