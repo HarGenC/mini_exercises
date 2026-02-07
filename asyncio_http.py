@@ -1,4 +1,3 @@
-from ast import Dict
 import asyncio
 import json
 import logging
@@ -35,7 +34,7 @@ async def consumer(urls_queue:asyncio.Queue, status_code_queue:asyncio.Queue) ->
             await status_code_queue.put(await get_status_code(url, session))
             urls_queue.task_done()
 
-async def should_retry(status_code: int, exception: Exception) -> bool:
+def should_retry(status_code: int, exception: Exception) -> bool:
     if exception:
         if isinstance(exception, (aiohttp.ClientConnectorError, asyncio.TimeoutError)):
             return True
@@ -47,10 +46,11 @@ async def should_retry(status_code: int, exception: Exception) -> bool:
         return True
     if 400 <= status_code < 500:
         return False
+    return False
 
 
 async def get_status_code(url:str,
-                          session:aiohttp.ClientSession) -> Dict:
+                          session:aiohttp.ClientSession) -> dict:
     last_exception = None
     status_code = 0
     max_retries = 5
@@ -63,7 +63,7 @@ async def get_status_code(url:str,
             
         except aiohttp.ClientResponseError as e:
             last_exception = e
-            if not await should_retry(status_code, e):
+            if not should_retry(status_code, e):
                 logger.exception(f"Ошибка HTTP: {type(e).__name__} - {e.status}", extra={"url": url, "attempt": attempt}, exc_info=True)
                 break
 
@@ -82,7 +82,7 @@ async def get_status_code(url:str,
             logger.exception(f"Неожиданное исключение: {type(e).__name__} - {e}", extra={"url": url, "attempt": attempt}, exc_info=True)
             break
 
-        if attempt < max_retries and await should_retry(status_code, last_exception):
+        if attempt < max_retries and should_retry(status_code, last_exception):
             delay = 2 ** (attempt - 1)
             await asyncio.sleep(delay)
         else:

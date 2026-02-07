@@ -2,3 +2,4 @@ https://example.com
 https://remanga.org/manga/noblesse/vol3/160
 https://httpbin.org/status/404
 https://nonexistent.url
+https://jsonplaceholder.typicode.com/todos/1
