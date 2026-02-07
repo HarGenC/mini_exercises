@@ -23,8 +23,8 @@ def time_logger(func):
     return wrapper
 
 
-def generate_data(n:int) -> int:
-    return [random.randint(1, 1000) for i in range(n)]
+def generate_data(size:int) -> int:
+    return [random.randint(1, 1000) for i in range(size)]
 
 def process_number(number:int) -> int | None:
     result = 1
@@ -33,20 +33,20 @@ def process_number(number:int) -> int | None:
     return result
 
 @time_logger
-def sync_execution(data:list):
-    for number in data:
+def sync_execution(numbers:list):
+    for number in numbers:
         process_number(number)
 
 @time_logger
-def thread_pool_execution(data:list, optimal_count_workerks:int):
+def thread_pool_execution(numbers:list, optimal_count_workerks:int):
     with ThreadPoolExecutor(max_workers=optimal_count_workerks) as executor:
-        for number in data:
+        for number in numbers:
             executor.submit(process_number, number)
 
 @time_logger
-def multiprocessing_execution(data:list, optimal_count_workerks:int):
+def multiprocessing_execution(numbers:list, optimal_count_workerks:int):
     with multiprocessing.Pool(processes=optimal_count_workerks) as pool:
-        pool.map(process_number, data)
+        pool.map(process_number, numbers)
 
 def worker_work_func(queue:multiprocessing.Queue, func):
     while True:
@@ -59,10 +59,10 @@ def worker_work_func(queue:multiprocessing.Queue, func):
             logger.exception(f"Неожиданное исключение: {type(e).__name__} - {e}", exc_info=True)
 
 @time_logger
-def multiprocessing_with_queue_execution(data:list, optimal_count_workerks:int):
+def multiprocessing_with_queue_execution(numbers:list, optimal_count_workerks:int):
     queue = multiprocessing.Queue()
     processes = []
-    for number in data:
+    for number in numbers:
         queue.put(number)
 
     for i in range(optimal_count_workerks):
@@ -91,11 +91,11 @@ def visualization_results(results):
 
 if __name__ == '__main__':
     optimal_count_workerks = multiprocessing.cpu_count()
-    data = generate_data(DEFAULT_DATA_SIZE)
+    numbers = generate_data(DEFAULT_DATA_SIZE)
     results = []
-    results.append({"method":"sync_execution","time_execution":sync_execution(data)[0]})
-    results.append({"method":"thread_pool_execution","time_execution":thread_pool_execution(data, optimal_count_workerks)[0]})
-    results.append({"method":"multiprocessing_execution","time_execution":multiprocessing_execution(data, optimal_count_workerks)[0]})
-    results.append({"method":"multiprocessing_with_queue_execution","time_execution":multiprocessing_with_queue_execution(data, optimal_count_workerks)[0]})
+    results.append({"method":"sync_execution","time_execution":sync_execution(numbers)[0]})
+    results.append({"method":"thread_pool_execution","time_execution":thread_pool_execution(numbers, optimal_count_workerks)[0]})
+    results.append({"method":"multiprocessing_execution","time_execution":multiprocessing_execution(numbers, optimal_count_workerks)[0]})
+    results.append({"method":"multiprocessing_with_queue_execution","time_execution":multiprocessing_with_queue_execution(numbers, optimal_count_workerks)[0]})
     visualization_results(results)
     
